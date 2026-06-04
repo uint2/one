@@ -1,0 +1,32 @@
+name: kopiwm build
+
+on:
+  push:
+    paths:
+      - "code/tools/kopiwm/**/*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [
+            # [latest stuff]
+            ubuntu-latest,
+            macos-latest,
+            # [fixed versions]
+            ubuntu-24.04,
+            ubuntu-22.04,
+            macos-15,
+            macos-14,
+          ]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/kopiwm
+    steps:
+      - uses: actions/checkout@v5
+      - run: cp build.zig.zon ${{ github.workspace }}
+      - uses: mlugg/setup-zig@v2
+      - run: zig build
