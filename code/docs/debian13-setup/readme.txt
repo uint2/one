@@ -50,7 +50,7 @@ rust. So do
 
 and then we can install the automated setup runner with
 
-  cargo install --git https://codeberg.org/nguyenvukhang/debian13.git
+  cargo install --git https://github.com/nguyenvukhang/debian13.git
 
 To run the setup, simply execute "debian13". Once done, uninstall it with "cargo
 uninstall debian 13".

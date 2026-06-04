@@ -31,7 +31,7 @@ jobs:
       run:
         working-directory: code/tools/ln/c
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: make configure
       - run: make install
   build-zig-rust:
@@ -63,7 +63,7 @@ jobs:
       run:
         working-directory: code/tools/ln/${{ matrix.lang }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: cp build.zig.zon ${{ github.workspace }}
         if: ${{ matrix.lang == 'zig' }}
       - uses: mlugg/setup-zig@v2
