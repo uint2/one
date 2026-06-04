@@ -32,7 +32,7 @@ source_if_exists $HOME/.opam/opam-init/init.zsh # opam (OCaml)
 # // Shell environment variables.
 
 # special directories
-export UNI=$HOME/uni REPOS=$HOME/repos DOTS=$HOME/dots
+export REPOS=$HOME/repos DOTS=$HOME/mono/code/config
 
 export PYTHONPYCACHEPREFIX=/tmp/pycache        # bye __pycache__
 export LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 # locale standardize
@@ -332,12 +332,11 @@ alias 2j="cd $HOME/Downloads"
 alias 2l="cd $HOME/.local"
 alias 2lb="cd $HOME/.local/bin"
 alias 2ls="cd $HOME/.local/src"
-alias 2m="cd $REPOS/money-manager"
+alias 2m="cd $HOME/mono"
 alias 2mc="cd '$HOME/Library/Application Support/PrismLauncher/instances'"
 alias 2n="cd $REPOS/notes"
 alias 2o="cd $HOME/repos"
 alias 2t="cd $HOME/repos/tex"
-alias 2u="cd $UNI"
 alias 2v="cd $DOTS/nvim"
 alias 2z="cd $DOTS/zsh"
 
