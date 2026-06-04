@@ -1,50 +1,45 @@
-MAKEFILE_PATH := $(realpath $(lastword $(MAKEFILE_LIST)))
-MAKEFILE_DIR  := $(realpath $(dir $(MAKEFILE_PATH)))
+# dwm - dynamic window manager
+# See LICENSE file for copyright and license details.
 
-ZIG_OUT := $(MAKEFILE_DIR)/zig-out
-LOG_DIR := $(ZIG_OUT)
+include config.mk
 
-quick: x quick-make-command
+SRC = drw.c dwm.c util.c
+OBJ = ${SRC:.c=.o}
 
-x:
-	python3 $(MAKEFILE_DIR)/scripts/tutorial.py
+all: dwm
 
-x-rg:
-	rg 'X\.' --glob '!*x_tutorial*' --stats
+.c.o:
+	${CC} -c ${CFLAGS} $<
 
-build:
-	zig build
+${OBJ}: config.h config.mk
 
-test:
-	zig build test
+config.h:
+	cp config.def.h $@
 
-install:
-	zig build --prefix ~/.local -Doptimize=ReleaseFast install
+dwm: ${OBJ}
+	${CC} -o $@ ${OBJ} ${LDFLAGS}
 
-# ====================================================================
-# Development
-# ====================================================================
+clean:
+	rm -f dwm ${OBJ} dwm-${VERSION}.tar.gz
 
-run: debug-run log
+dist: clean
+	mkdir -p dwm-${VERSION}
+	cp -R LICENSE Makefile README config.def.h config.mk\
+		dwm.1 drw.h util.h ${SRC} dwm.png transient.c dwm-${VERSION}
+	tar -cf dwm-${VERSION}.tar dwm-${VERSION}
+	gzip dwm-${VERSION}.tar
+	rm -rf dwm-${VERSION}
 
-# Runs kopiwm in debug mode, and logs the stderr to a log file.
-debug-run: debug-install
-	mkdir -p $(LOG_DIR)
-	-XINITRC=./scripts/.xinitrc startx -- -keeptty \
-		>$(LOG_DIR)/Xorg.0.log \
-		2>$(LOG_DIR)/kopiwm.log
+install: all
+	mkdir -p ${DESTDIR}${PREFIX}/bin
+	cp -f dwm ${DESTDIR}${PREFIX}/bin
+	chmod 755 ${DESTDIR}${PREFIX}/bin/dwm
+	mkdir -p ${DESTDIR}${MANPREFIX}/man1
+	sed "s/VERSION/${VERSION}/g" < dwm.1 > ${DESTDIR}${MANPREFIX}/man1/dwm.1
+	chmod 644 ${DESTDIR}${MANPREFIX}/man1/dwm.1
 
-debug-install:
-	zig build --prefix ~/.local install
+uninstall:
+	rm -f ${DESTDIR}${PREFIX}/bin/dwm\
+		${DESTDIR}${MANPREFIX}/man1/dwm.1
 
-log:
-	nvim $(LOG_DIR)/kopiwm.log
-
-# If ever, for whatever reason, X shows an error like "No screens
-# found" or "Screens found but not usable", try this fix.
-recovery:
-	Xorg -configure
-	dpkg --configure -a # might require root.
-	# and then reboot (logging out is not enough for some reason).
-
-quick-make-command: build
+.PHONY: all clean dist install uninstall
