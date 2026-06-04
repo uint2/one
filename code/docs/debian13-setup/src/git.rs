@@ -24,9 +24,7 @@ impl GitRepo {
     }
 
     pub fn ensure_exists_at(&self, dir: &Path) {
-        if !is_inside_worktree(dir)
-            || get_git_remote_origin(dir) != self.remote_url
-        {
+        if !is_inside_worktree(dir) || get_git_remote_origin(dir) != self.remote_url {
             let _ = fs::remove_dir_all(dir);
             self.clone(dir);
         }

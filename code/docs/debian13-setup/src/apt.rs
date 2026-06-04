@@ -18,12 +18,7 @@ pub fn install_apt_packages() {
     apt.args(["linux-headers-generic", "libglvnd-dev"]);
 
     // Build requirements for dwm.
-    apt.args([
-        "libx11-dev",
-        "libxft-dev",
-        "libfreetype-dev",
-        "libfontconfig-dev",
-    ]);
+    apt.args(["libx11-dev", "libxft-dev", "libfreetype-dev", "libfontconfig-dev"]);
 
     // Runtime requirements for QMK.
     apt.args([
@@ -73,16 +68,7 @@ pub fn install_apt_packages() {
         // Audio drivers.
         .args(["alsa-utils", "pulseaudio"])
         // Apps that I use.
-        .args([
-            "zsh",
-            "kitty",
-            "rofi",
-            "xclip",
-            "flameshot",
-            "feh",
-            "eza",
-            "zathura",
-        ]);
+        .args(["zsh", "kitty", "rofi", "xclip", "flameshot", "feh", "eza", "zathura"]);
 
     // Wrap that up and send.
     apt.stdout("apt.stdout.txt").stderr("apt.stderr.txt").run().unwrap();

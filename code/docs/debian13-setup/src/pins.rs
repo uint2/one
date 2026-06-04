@@ -21,8 +21,7 @@ pub mod less {
 pub mod ln {
     use super::*;
 
-    pub const REPO: GitRepo =
-        GitRepo::new("https://github.com/nvkcc/ln.git", "main");
+    pub const REPO: GitRepo = GitRepo::new("https://github.com/nvkcc/ln.git", "main");
 }
 
 pub mod micromamba {

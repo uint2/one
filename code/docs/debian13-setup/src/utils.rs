@@ -75,8 +75,7 @@ where
 }
 
 pub fn sha256sum<P: AsRef<Path>>(filepath: P) -> String {
-    let output =
-        cmd!("sha256sum", filepath.as_ref()).collect_stdout().run().unwrap();
+    let output = cmd!("sha256sum", filepath.as_ref()).collect_stdout().run().unwrap();
     let stdout = output.stdout.unwrap();
     stdout.split_once(' ').unwrap().0.to_string()
 }

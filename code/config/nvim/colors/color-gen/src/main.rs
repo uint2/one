@@ -114,7 +114,8 @@ fn main() {
     }
 
     let outfile = Path::new(&first_arg);
-    let file_stem = outfile.file_stem().unwrap().to_str().unwrap().to_string() + "_generated";
+    let file_stem =
+        outfile.file_stem().unwrap().to_str().unwrap().to_string() + "_generated";
     let outfile = outfile.with_file_name(file_stem).with_extension("vim");
 
     let mut f = fs::File::create(outfile).unwrap();

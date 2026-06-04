@@ -47,15 +47,12 @@ fn dwm_install(source_dir: &Path) {
 
 /// Install firefox from their PPA repository.
 fn firefox_install() {
-    const GPG_KEY_URL: &str =
-        "https://packages.mozilla.org/apt/repo-signing-key.gpg";
+    const GPG_KEY_URL: &str = "https://packages.mozilla.org/apt/repo-signing-key.gpg";
     const GPG_KEY_PATH: &str = "/etc/apt/keyrings/packages.mozilla.org.asc";
 
     // Get the signing key.
-    let output =
-        cmd!("wget", "--quiet", GPG_KEY_URL, "-O-").collect_stdout().run();
-    let signing_key =
-        output.unwrap().stdout.expect("Unable to obtain signing key.");
+    let output = cmd!("wget", "--quiet", GPG_KEY_URL, "-O-").collect_stdout().run();
+    let signing_key = output.unwrap().stdout.expect("Unable to obtain signing key.");
     utils::echo(signing_key.trim(), GPG_KEY_PATH, true);
     // Add the newly added APT repository to our sources list:
     utils::echo(
@@ -117,8 +114,7 @@ fn micromamba_install() {
         .unwrap();
     assert_eq!(shasum.stdout.unwrap().trim(), utils::sha256sum(OUTFILE));
     sh!("chmod", "u+x", "micromamba");
-    fs::rename("micromamba", home_dir().join(".local/bin").join(OUTFILE))
-        .unwrap();
+    fs::rename("micromamba", home_dir().join(".local/bin").join(OUTFILE)).unwrap();
     // Later on, run
     // micromamba create --name ml python=3.12 --channel=conda-forge
 }
