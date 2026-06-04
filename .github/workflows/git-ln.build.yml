@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "code/tools/ln/**/*"
+  workflow_dispatch:
 
 jobs:
   build-c:
