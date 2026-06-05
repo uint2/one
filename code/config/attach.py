@@ -29,6 +29,7 @@ links = [
     Link(src=path.join(CWD, "@/git/config"), dst=path.join(HOME, ".gitconfig")),
     Link(src=path.join(CWD, "@/xorg/.xinitrc"), dst=path.join(HOME, ".xinitrc")),
     Link(src=path.join(CWD, "@/kitty"), dst=path.join(CONFIG_DIR, "kitty")),
+    Link(src=path.join(CWD, "@/htop"), dst=path.join(CONFIG_DIR, "htop")),
 ]
 
 
