@@ -1,0 +1,6 @@
+Language: Cpp
+ColumnLimit: 80
+IndentWidth: 4
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortCaseLabelsOnASingleLine: true
