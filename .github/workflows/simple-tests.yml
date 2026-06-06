@@ -1,16 +1,28 @@
-name: Simple Tests
+name: simple tests
 
 on:
   push:
 
 jobs:
-  numerical methods:
-    name: Run tests
+  numerical-methods:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ../../code/tools/numerical-methods
+        working-directory: code/tools/numerical-methods
+    steps:
+      - uses: actions/checkout@v6
+      - name: build
+        run: cargo build --release
+      - name: run tests
+        run: cargo test --release
+
+  stats-calc:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: code/tools/stats-calc
     steps:
       - uses: actions/checkout@v6
       - name: build
