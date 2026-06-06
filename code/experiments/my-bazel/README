@@ -1,0 +1,12 @@
+Get started with
+
+```
+go install github.com/bazelbuild/bazelisk@latest
+```
+
+An attempt at having a single location to build all the development tools that I
+use, so that it's reproducible and all self-contained. Might also help with
+setting up in a new environment. However, these tools tend to have specialized
+build procedures that each require effort to convert to a Bazel-based build.
+Moreover these tools have to be installed on the user's system, so other tools
+like CMake are much better suited for this.

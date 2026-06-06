@@ -1,0 +1,28 @@
+git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+new_git_repository = use_repo_rule("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
+
+_ALL_SRCS = """\
+filegroup(
+    name = "all_srcs",
+    srcs = glob(["**"]),
+    visibility = ["//visibility:public"]
+)"""
+
+bazel_dep(name = "xxhash", version = "0.8.2")
+bazel_dep(name = "rules_foreign_cc", version = "0.9.0")
+bazel_dep(name = "rules_cc", version = "0.2.17")
+
+new_git_repository(
+    name = "fast_float",
+    build_file = "//bazel:fast_float.BUILD",
+    commit = "82865ad47514db3a8835398a8e73af38b73e7360",  # latest
+    remote = "https://github.com/fastfloat/fast_float",
+)
+
+new_git_repository(
+    name = "neovim",
+    build_file = "//bazel:neovim.BUILD",
+    commit = "7ac5a26d5633a41d7e291141488ca635242973a5",  # 0.12.1
+    remote = "https://github.com/neovim/neovim",
+)
