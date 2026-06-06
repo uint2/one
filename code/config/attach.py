@@ -30,6 +30,7 @@ links = [
     Link(src=path.join(CWD, "@/xorg/.xinitrc"), dst=path.join(HOME, ".xinitrc")),
     Link(src=path.join(CWD, "@/kitty"), dst=path.join(CONFIG_DIR, "kitty")),
     Link(src=path.join(CWD, "@/htop"), dst=path.join(CONFIG_DIR, "htop")),
+    Link(src=path.join(CWD, "@/flameshot"), dst=path.join(CONFIG_DIR, "flameshot")),
 ]
 
 
