@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="21701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="ipad7_9" orientation="landscape" layout="fullscreen" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21678"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="Paper" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="1133" height="744"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="j1r-aR-XJB" customClass="ScrollView" customModule="Paper" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="24" width="1133" height="700"/>
+                                <subviews>
+                                    <stackView opaque="NO" contentMode="scaleToFill" ambiguous="YES" axis="vertical" distribution="equalSpacing" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="Vzc-9r-ODA" customClass="DocumentView" customModule="Paper" customModuleProvider="target">
+                                        <rect key="frame" x="243" y="38" width="647" height="623"/>
+                                        <color key="backgroundColor" red="0.73333333329999995" green="0.96862745100000003" blue="0.81568627449999997" alpha="1" colorSpace="calibratedRGB"/>
+                                    </stackView>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstItem="Vzc-9r-ODA" firstAttribute="trailing" secondItem="AbN-dL-JNb" secondAttribute="trailing" id="X1z-7R-mVK"/>
+                                    <constraint firstItem="Vzc-9r-ODA" firstAttribute="top" secondItem="AbN-dL-JNb" secondAttribute="top" id="dCf-LC-R7E"/>
+                                    <constraint firstItem="Vzc-9r-ODA" firstAttribute="bottom" secondItem="AbN-dL-JNb" secondAttribute="bottom" id="dVY-PK-LqK"/>
+                                    <constraint firstItem="Vzc-9r-ODA" firstAttribute="leading" secondItem="AbN-dL-JNb" secondAttribute="leading" id="fGF-H6-1eT"/>
+                                </constraints>
+                                <viewLayoutGuide key="contentLayoutGuide" id="AbN-dL-JNb"/>
+                                <viewLayoutGuide key="frameLayoutGuide" id="pS5-2y-DSE"/>
+                            </scrollView>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="j1r-aR-XJB" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="38y-wV-7vJ"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="j1r-aR-XJB" secondAttribute="trailing" id="3JI-5g-pYV"/>
+                            <constraint firstItem="j1r-aR-XJB" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="oHZ-WI-Ffq"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="j1r-aR-XJB" secondAttribute="bottom" id="uo9-zj-oMP"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="docView" destination="Vzc-9r-ODA" id="koR-hd-gVP"/>
+                        <outlet property="scrollView" destination="j1r-aR-XJB" id="YGi-Ob-bda"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="33.627537511032656" y="3.2258064516129035"/>
+        </scene>
+    </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>
