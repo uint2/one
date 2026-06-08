@@ -62,7 +62,7 @@ pub fn parse<A: ArgHolder>(
         let arg = args[i].as_str();
         let git_cmd = git_cmd.as_mut().unwrap();
         match git_cmd {
-            GitCommand::Status(ref mut v) => match arg {
+            GitCommand::Status(v) => match arg {
                 "--short" | "-s" | "--porcelain" => v.short(),
                 _ => {}
             },
@@ -108,11 +108,7 @@ mod tests {
     test!(test_mix, ["add", "8", "2-4"], ["add", "8", "2", "3", "4"]);
 
     // Gitnu will not seek to interfere with these cases smartly.
-    test!(
-        test_overlap,
-        ["add", "3-5", "2-4"],
-        ["add", "3", "4", "5", "2", "3", "4"]
-    );
+    test!(test_overlap, ["add", "3-5", "2-4"], ["add", "3", "4", "5", "2", "3", "4"]);
 
     // anything after `--` will also be processed. This is for commands
     // like `git reset` which requires pathspecs to appear after --.

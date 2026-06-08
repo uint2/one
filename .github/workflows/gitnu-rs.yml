@@ -1,0 +1,64 @@
+name: gitnu tests
+
+on:
+  push:
+    paths:
+      - "code/tools/gitnu/rust/**/*"
+      - .github/workflows/gitnu-rs.yml
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run tests
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          cargo build
+          cargo test
+        working-directory: code/tools/gitnu/rust
+
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.V.outputs.version }}
+      tag: ${{ steps.V.outputs.tag }}
+      ref: ${{ steps.V.outputs.ref }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo install cargo-get
+      - id: V
+        working-directory: code/tools/gitnu/rust
+        run: |
+          VERSION=$(cargo get package.version)
+          TAG="gitnu-v${VERSION}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "ref=refs/tags/${TAG}" >> $GITHUB_OUTPUT
+
+  publish-crates-io:
+    name: Publish to Crates.io
+    runs-on: ubuntu-latest
+    needs: ["build-and-test", meta]
+    if: github.ref == needs.meta.outputs.ref
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.meta.outputs.tag }}
+      - uses: katyo/publish-crates@v2
+        with:
+          path: code/tools/gitnu/rust
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
