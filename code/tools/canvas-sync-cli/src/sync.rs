@@ -20,11 +20,7 @@ pub struct Sync<'a> {
 }
 
 impl<'a> Sync<'a> {
-    pub fn new(
-        api: &'a Api,
-        fm: &'a FolderMap,
-        download: bool,
-    ) -> Result<Self> {
+    pub fn new(api: &'a Api, fm: &'a FolderMap, download: bool) -> Result<Self> {
         if !fm.parent_exists() {
             return Err(Error::DownloadNoParentDir(fm.local_dir()));
         }
@@ -42,10 +38,9 @@ impl<'a> Sync<'a> {
         match folder_files {
             Err(e) => Err(e),
             Ok((remote_path, files)) => {
-                let files =
-                    files.as_array().ok_or(Error::NoFoldersFoundInCourse {
-                        url: self.fm.url().to_string(),
-                    })?;
+                let files = files.as_array().ok_or(Error::NoFoldersFoundInCourse {
+                    url: self.fm.url().to_string(),
+                })?;
                 let remote_path = Path::new(&remote_path);
                 let updates: Vec<Update> = files
                     .into_iter()
@@ -80,9 +75,7 @@ impl<'a> Sync<'a> {
         let folders = self.api.course_folders(self.course_id).await?;
         let folders: Vec<(u32, String)> = folders
             .as_array()
-            .ok_or(Error::NoFoldersFoundInCourse {
-                url: self.fm.url().to_string(),
-            })?
+            .ok_or(Error::NoFoldersFoundInCourse { url: self.fm.url().to_string() })?
             .into_iter()
             .filter_map(|v| v.to_remote_folder(&self.remote_dir))
             .collect();
@@ -92,13 +85,12 @@ impl<'a> Sync<'a> {
             return Err(Error::NoFoldersFoundInCourse { url });
         }
 
-        let futures =
-            folders.into_iter().map(|(folder_id, remote_path)| async move {
-                self.api
-                    .files(folder_id)
-                    .map(move |files| files.map(|f| (remote_path, f)))
-                    .await
-            });
+        let futures = folders.into_iter().map(|(folder_id, remote_path)| async move {
+            self.api
+                .files(folder_id)
+                .map(move |files| files.map(|f| (remote_path, f)))
+                .await
+        });
 
         let local_dir = self.fm.local_dir();
         let loloupdates = futures::stream::iter(futures)
@@ -109,11 +101,7 @@ impl<'a> Sync<'a> {
         Ok(t?.into_iter().flatten().collect())
     }
 
-    pub async fn run(
-        api: &Api,
-        updates: Vec<Update>,
-        download: bool,
-    ) -> Result<()> {
+    pub async fn run(api: &Api, updates: Vec<Update>, download: bool) -> Result<()> {
         let mut downloads = vec![];
 
         let mut updates = updates
@@ -161,10 +149,9 @@ fn display_updates(updates: &Vec<Update>, course_names: &HashMap<u32, &str>) {
             prev_id = update.course_id;
             match course_names.get(&update.course_id) {
                 Some(v) => println!("{v}"),
-                None => println!(
-                    "Error: failed to fetch course with id {}",
-                    update.course_id
-                ),
+                None => {
+                    println!("Error: failed to fetch course with id {}", update.course_id)
+                }
             }
         }
         println!("  + {}", update.remote_path.to_string_lossy());

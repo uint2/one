@@ -20,9 +20,7 @@ pub trait ToExitCode {
 
 impl ToExitCode for ExitStatus {
     fn to_exitcode(self) -> ExitCode {
-        self.code()
-            .map(|c| ExitCode::from((c % 256) as u8))
-            .unwrap_or(ExitCode::FAILURE)
+        self.code().map(|c| ExitCode::from((c % 256) as u8)).unwrap_or(ExitCode::FAILURE)
     }
 }
 

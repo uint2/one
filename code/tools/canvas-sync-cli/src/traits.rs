@@ -17,10 +17,7 @@ pub trait EasyJson {
     //
     // if tracked_remote_dir is blank, then the tracking begins from
     // the root folder.
-    fn to_remote_folder(
-        &self,
-        tracked_remote_dir: &str,
-    ) -> Option<(u32, String)>;
+    fn to_remote_folder(&self, tracked_remote_dir: &str) -> Option<(u32, String)>;
 
     fn to_normalized_filename(&self) -> Option<String>;
 }
@@ -41,10 +38,7 @@ impl EasyJson for Value {
         }
     }
 
-    fn to_remote_folder(
-        &self,
-        tracked_remote_dir: &str,
-    ) -> Option<(u32, String)> {
+    fn to_remote_folder(&self, tracked_remote_dir: &str) -> Option<(u32, String)> {
         if self["id"].is_null() || self["full_name"].is_null() {
             return None;
         }

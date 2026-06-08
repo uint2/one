@@ -35,8 +35,7 @@ pub fn parse_url(mut url: &str) -> Result<(u32, String)> {
 
 #[test]
 fn test_parse_url() -> Result<()> {
-    let (id, path) =
-        parse_url("https://canvas.nus.edu.sg/courses/36732/files")?;
+    let (id, path) = parse_url("https://canvas.nus.edu.sg/courses/36732/files")?;
     assert_eq!(id, 36732);
     assert_eq!(path, "");
     let (id, path) = parse_url(

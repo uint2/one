@@ -57,9 +57,7 @@ impl Cache {
     /// Append the `index`-th cached value into an ArgHolder.
     pub fn load<A: ArgHolder>(&self, index: usize, argh: &mut A) {
         match (&self.prefix, self.files.get(index)) {
-            (Some(prefix), Some(pathspec)) => {
-                argh.add_arg(prefix.join(pathspec))
-            }
+            (Some(prefix), Some(pathspec)) => argh.add_arg(prefix.join(pathspec)),
             (None, Some(pathspec)) => argh.add_arg(pathspec),
             _ => argh.add_arg(index.to_string()),
         };

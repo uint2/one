@@ -61,7 +61,7 @@ impl App {
     pub async fn run(&self) -> Result<()> {
         if self.args.version {
             println!("{BINARY_NAME} {}", VERSION.unwrap_or("unknown"));
-            return Ok(())
+            return Ok(());
         }
         let cfg_path = self.args.config_path.as_ref();
         let command = match &self.args.command {
@@ -93,9 +93,8 @@ New token set! Try running `{BINARY_NAME}` to verify it.
                 Ok(())
             }
             C::Config { edit: true } => {
-                let editor = std::env::var("EDITOR").map_err(|_| {
-                    Error::of("Unable to get an editor from $EDITOR.")
-                })?;
+                let editor = std::env::var("EDITOR")
+                    .map_err(|_| Error::of("Unable to get an editor from $EDITOR."))?;
                 Command::new(editor).arg(Config::path()?).spawn()?.wait()?;
                 Ok(())
             }
@@ -115,8 +114,7 @@ New token set! Try running `{BINARY_NAME}` to verify it.
             .iter()
             .map(|fm| Sync::new(&api, fm, download))
             .collect::<Result<Vec<_>>>()?;
-        let handles =
-            syncers.into_iter().map(|v| v.get_updates()).collect::<Vec<_>>();
+        let handles = syncers.into_iter().map(|v| v.get_updates()).collect::<Vec<_>>();
         println!("Syncing {} folders...", handles.len());
 
         // sync at most 5 folders at a time.

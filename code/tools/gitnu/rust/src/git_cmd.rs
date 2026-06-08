@@ -1,4 +1,4 @@
-use crate::{prelude::Aliases, Error, Result};
+use crate::{Error, Result, prelude::Aliases};
 
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) enum GitStatus {

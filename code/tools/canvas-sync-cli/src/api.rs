@@ -58,17 +58,13 @@ impl Api {
     /// Get the files of a folder.
     pub async fn files(&self, folder_id: u32) -> Result<Value> {
         log::debug!("[API::FILES] {folder_id}");
-        let url = format!(
-            "https://canvas.nus.edu.sg/api/v1/folders/{folder_id}/files"
-        );
+        let url = format!("https://canvas.nus.edu.sg/api/v1/folders/{folder_id}/files");
         self.json(&url).await
     }
 
     /// Get the folders of a particular course id.
     pub async fn course_folders(&self, course_id: u32) -> Result<Value> {
-        let url = format!(
-            "https://canvas.nus.edu.sg/api/v1/courses/{course_id}/folders"
-        );
+        let url = format!("https://canvas.nus.edu.sg/api/v1/courses/{course_id}/folders");
         self.json(&url).await
     }
 

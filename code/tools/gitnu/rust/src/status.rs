@@ -45,10 +45,8 @@ fn normal(state: &mut State, line: String) -> Option<String> {
 
     let line = &uncolor(&line);
     let line: &str = std::str::from_utf8(line).unwrap();
-    let line = line
-        .rsplit_once('\t')
-        .expect("There should be a tab character in the line")
-        .1;
+    let line =
+        line.rsplit_once('\t').expect("There should be a tab character in the line").1;
 
     // Example:
     // ```
@@ -59,9 +57,9 @@ fn normal(state: &mut State, line: String) -> Option<String> {
     // 2       core/line.rs
     // ```
     let (delta, pathspec) = match state.seen_untracked {
-        false => line
-            .split_once(':')
-            .expect("There should be a `:` character in the line"),
+        false => {
+            line.split_once(':').expect("There should be a `:` character in the line")
+        }
         true => ("", line),
     };
 

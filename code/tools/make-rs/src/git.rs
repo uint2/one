@@ -57,9 +57,8 @@ impl Repo {
     /// Clones this repo to a directory.
     /// TODO: optimize this with shallow clones where possible.
     pub fn clone_to_dir(&self, dir: &Path) {
-        let mut child = git!("clone", self.url, dir)
-            .spawn()
-            .expect("Spawning `git clone` failed.");
+        let mut child =
+            git!("clone", self.url, dir).spawn().expect("Spawning `git clone` failed.");
         child.wait().expect("Waiting for child process failed.");
     }
 

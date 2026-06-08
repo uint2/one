@@ -35,13 +35,13 @@ pub(crate) fn dir<P: AsRef<Path>>(cwd: P) -> Result<PathBuf> {
 pub(crate) fn aliases() -> Aliases {
     let args = ["config", "--global", "--get-regexp", "^alias."];
     match sh(None::<&str>, &args) {
-        Ok(v) => Aliases::from_iter(
-            v.stdout.lines().filter_map(|v| v.ok()).filter_map(|v| {
+        Ok(v) => {
+            Aliases::from_iter(v.stdout.lines().filter_map(|v| v.ok()).filter_map(|v| {
                 v.get(6..) // every lines starts with "alias."
                     .and_then(|v| v.split_once(' '))
                     .map(|(k, v)| (k.to_string(), v.to_string()))
-            }),
-        ),
+            }))
+        }
         Err(_) => Aliases::new(),
     }
 }

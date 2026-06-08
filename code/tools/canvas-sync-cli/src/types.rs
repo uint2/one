@@ -1,7 +1,7 @@
+use crate::BINARY_NAME;
 use crate::error::Result;
 use crate::string::parse_url;
 use crate::traits::*;
-use crate::BINARY_NAME;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 

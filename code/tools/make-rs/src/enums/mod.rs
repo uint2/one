@@ -59,10 +59,7 @@ impl CompileDefinition {
     }
 
     pub fn kv(key: &'static str, value: &'static str) -> Self {
-        Self {
-            key,
-            value: Some(value),
-        }
+        Self { key, value: Some(value) }
     }
 
     pub fn to_c_flag(&self) -> String {

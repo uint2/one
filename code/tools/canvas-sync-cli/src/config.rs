@@ -1,6 +1,6 @@
+use crate::BINARY_NAME;
 use crate::error::{Error, Result};
 use crate::types::FolderMap;
-use crate::BINARY_NAME;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -26,10 +26,7 @@ impl Config {
     {
         let cfg_path = Self::path()?;
         if let Ok(false) = cfg_path.try_exists() {
-            println!(
-                "New config file created at\n'{}'\n",
-                cfg_path.to_string_lossy()
-            )
+            println!("New config file created at\n'{}'\n", cfg_path.to_string_lossy())
         }
         let mut config: Self = match config_path {
             Some(v) => confy::load_path(v),
