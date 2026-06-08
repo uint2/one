@@ -81,6 +81,7 @@ pub fn install_apt_packages() {
             "eza",
             "zathura",
             "pcmanfm",
+            "nnn",
         ]);
 
     // Wrap that up and send.
