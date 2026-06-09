@@ -1,4 +1,4 @@
-name: gitnu tests
+name: gitnu-rs tests
 
 on:
   push:
