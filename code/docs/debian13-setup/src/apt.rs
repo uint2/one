@@ -1,7 +1,7 @@
 /// NOTE: this requires `sudo` to already be installed.
 pub fn install_apt_packages() {
-    sh!("sudo", "apt", "update");
-    let mut apt = cmd!("sudo", "apt", "install");
+    sh!("sudo", "apt-get", "update", "--yes");
+    let mut apt = cmd!("sudo", "apt-get", "install", "--yes");
 
     // Build requirements for zsh.
     apt.args(["libncurses-dev"]);

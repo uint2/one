@@ -79,8 +79,8 @@ Pin-Priority: 1000"
         true,
     );
 
-    sh!("sudo", "apt", "update");
-    sh!("sudo", "apt", "install", "firefox");
+    sh!("sudo", "apt-get", "update", "--yes");
+    sh!("sudo", "apt-get", "install", "--yes", "firefox");
 }
 
 /// Install less from source.

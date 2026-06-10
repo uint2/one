@@ -28,6 +28,6 @@ jobs:
       - run: cp build.zig.zon ${{ github.workspace }}
       - uses: mlugg/setup-zig@v2
       - run: |
-          sudo apt update --yes
-          sudo apt install --yes libx11-dev libxft-dev libfreetype-dev libfontconfig-dev
+          sudo apt-get update --yes
+          sudo apt-get install --yes libx11-dev libxft-dev libfreetype-dev libfontconfig-dev
       - run: zig build
