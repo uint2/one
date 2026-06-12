@@ -1253,7 +1253,7 @@ fn setup(allocator: Allocator, wmcheckwin: *Xt.Window) DwmError!void {
 
     // Select events.
     {
-        var wa: X.XSetWindowAttributes = .{
+        var wa: Xt.XSetWindowAttributes = .{
             .cursor = z.cursors.get(.Normal),
             .event_mask = X.SubstructureRedirectMask | X.SubstructureNotifyMask //
             | X.ButtonPressMask | X.PointerMotionMask | X.EnterWindowMask //
@@ -1476,7 +1476,7 @@ fn cleanupmon(allocator: Allocator, mon: *Monitor) void {
 
 /// (dwm) updatebars
 fn updateBars() void {
-    var wa: X.XSetWindowAttributes = .{
+    var wa: Xt.XSetWindowAttributes = .{
         .override_redirect = Xt.True,
         .background_pixmap = X.ParentRelative,
         .event_mask = X.ButtonPressMask | X.ExposureMask,
