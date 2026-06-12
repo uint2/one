@@ -1,19 +1,6 @@
 use std::fs::{self, DirEntry};
 use std::path::{Path, PathBuf};
 
-static mut HOME_DIR: Option<PathBuf> = None;
-
-pub fn initialize_home_dir() {
-    let home_dir = std::env::home_dir().unwrap();
-    unsafe { HOME_DIR = Some(home_dir) };
-}
-
-/// This is safe because it is initialized once ever, at the start.
-#[allow(static_mut_refs)]
-pub fn home_dir() -> &'static Path {
-    unsafe { HOME_DIR.as_ref().unwrap() }.as_path()
-}
-
 /// Obtains the filesize using the `du` program.
 pub fn get_file_size_with_du<P: AsRef<Path>>(filepath: P) -> usize {
     let Ok(out) = cmd!("du", filepath.as_ref()).collect_stdout().run() else { return 0 };

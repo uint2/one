@@ -31,12 +31,20 @@ pub mod micromamba {
     );
 }
 
+pub mod minisign {
+
+    pub const DOWNLOAD_URL: &str = concat!(
+        "https://github.com/jedisct1/minisign/releases/download/0.12/minisign-0.12-linux.tar.gz",
+    );
+}
+
 pub mod neovim {
     str_enum!(
         Tag, //
         (V0_11_7, "v0.11.7"),
         (V0_12_2, "v0.12.2"),
     );
+    pub const TAG: Tag = Tag::V0_11_7;
 
     pub const REMOTE_URL: &str = "https://github.com/neovim/neovim.git";
 }
@@ -54,6 +62,7 @@ pub mod nvidia {
         // Released Tue Apr 28, 2026; file size: 423.13 MB
         (V595_71_05, "595.71.05"),
     );
+    pub const VERSION: Version = Version::V595_71_05;
 
     impl Version {
         pub const fn num_bytes(&self) -> usize {
@@ -71,4 +80,12 @@ pub mod nvidia {
             )
         }
     }
+}
+
+pub mod zls {
+    pub const MINISIGN_SIGNATURE: &str =
+        "RWR+9B91GBZ0zOjh6Lr17+zKf5BoSuFvrx2xSeDE57uIYvnKBGmMjOex";
+
+    pub const SOURCE_URL: &str =
+        "https://builds.zigtools.org/zls-x86_64-linux-0.15.1.tar.xz";
 }

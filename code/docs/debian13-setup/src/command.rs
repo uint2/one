@@ -23,7 +23,7 @@ macro_rules! sh {
     ($bin:expr, $($arg:expr),* $(,)?) => {{
         let mut cmd = $crate::command::Command2::new($bin);
         cmd$(.arg($arg))*;
-        let _ = cmd.run();
+        cmd.run().unwrap();
     }};
 }
 
@@ -59,6 +59,7 @@ pub struct Command2 {
 #[derive(Debug)]
 pub struct Output2 {
     pub stdout: Option<String>,
+    #[allow(unused)]
     pub stderr: Option<String>,
     pub status: ExitStatus,
 }
@@ -135,6 +136,7 @@ impl Command2 {
         self
     }
 
+    #[allow(unused)]
     pub fn collect_stderr(&mut self) -> &mut Self {
         self.collect_stderr = true;
         self

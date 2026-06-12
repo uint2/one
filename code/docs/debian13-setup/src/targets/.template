@@ -1,0 +1,10 @@
+use super::prelude::*;
+
+/// Download and install ??? .
+#[derive(FromArgs)]
+#[argh(subcommand, name = "???")]
+pub struct XXXXXXX {}
+
+impl Target for XXXXXXX {
+    fn install(&self) {}
+}

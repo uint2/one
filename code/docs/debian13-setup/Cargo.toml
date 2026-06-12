@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 argh = { version = "0.1.19", default-features = false, features = ["help"] }
+lazy_static = { version = "1.5.0" }
