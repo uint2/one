@@ -111,7 +111,6 @@ int gitnv_status(GitnvState *z) {
         if (!seen_untracked) {
             change_type = status_ptr + 1; // +1 to skip the '\t' char.
             pathspec = memchr(change_type, ':', 16);
-            *(pathspec++) = '\0';
             pathspec += strspn(pathspec, " \r\t");
         } else {
             pathspec = status_ptr + 1; // +1 to skip the '\t' char.
