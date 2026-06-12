@@ -3,7 +3,7 @@
 // A good place to start reading is
 // https://x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html
 
-const X = @import("x_tutorial.zig");
+const Xt = @import("x_tutorial.zig");
 const EnumArray = @import("enum_array.zig").EnumArray;
 const std = @import("std");
 
@@ -11,10 +11,10 @@ pub fn initializeAtomsForEnum(
     comptime Key: type,
     comptime Value: type,
     array: *EnumArray(Key, Value),
-    dpy: *X.Display,
+    dpy: *Xt.Display,
 ) void {
     for (std.enums.values(Key)) |key| {
-        array.set(key, X.XInternAtom(dpy, key.asStr(), false).?);
+        array.set(key, Xt.XInternAtom(dpy, key.asStr(), false).?);
     }
 }
 
