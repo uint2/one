@@ -91,6 +91,7 @@ impl Target for Apt {
                 "pcmanfm",
                 "nnn",
                 "git-crypt",
+                "clangd",
             ]);
 
         // Wrap that up and send.
