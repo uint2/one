@@ -36,93 +36,93 @@ jobs:
 
   # ----------------------------------------------------------------------------
 
-  kopiwm-build:
+  aquarium-rust-build:
     needs: delta
-    if: ${{ fromJson(needs.delta.outputs.all).kopiwm == 'true' }}
+    if: ${{ fromJson(needs.delta.outputs.all).aquarium == 'true' }}
     strategy:
       matrix:
-        os: [
-            # [latest stuff]
-            ubuntu-latest,
-            # [fixed versions]
-            ubuntu-24.04,
-            ubuntu-22.04,
-          ]
+        os:
+          - ubuntu-latest
+          - macos-latest
       fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: unzip problems.zip
+        working-directory: code/games/aquarium/problems/problem-db
+      - run: cargo run --release
+        working-directory: code/games/aquarium/rust
+
+  # ----------------------------------------------------------------------------
+
+  aquarium-swift-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).aquarium == 'true' }}
+    timeout-minutes: 5
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: unzip problems.zip
+        working-directory: code/games/aquarium/problems/problem-db
+      - run: swift run -c release EngineCli
+        working-directory: code/games/aquarium/Aquarium/Engine
+
+  # ----------------------------------------------------------------------------
+
+  canvas-sync-cli-test:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).canvas-sync-cli == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        working-directory: code/tools/kopiwm
+        working-directory: code/tools/canvas-sync-cli
     steps:
       - uses: actions/checkout@v6
-      - run: cp build.zig.zon ${{ github.workspace }}
-      - uses: mlugg/setup-zig@v2
-      - run: |
-          sudo apt-get update --yes
-          sudo apt-get install --yes libx11-dev libxft-dev libfreetype-dev libfontconfig-dev
-      - run: zig build
+      - name: build
+        run: cargo build --release
+      - name: run tests
+        run: cargo test --release
 
   # ----------------------------------------------------------------------------
 
-  helium-build:
+  debian13-setup-instructions-deploy:
     needs: delta
-    if: ${{ fromJson(needs.delta.outputs.all).helium == 'true' }}
-    strategy:
-      matrix:
-        os:
-          - macos-14
-          - macos-15
-        arch:
-          - arm64
-          - x86_64
-      fail-fast: false
-    timeout-minutes: 5
-    runs-on: ${{ matrix.os }}
+    if: ${{ fromJson(needs.delta.outputs.all).debian13 == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6
         with:
-          submodules: recursive
+          path: x
       - uses: actions/checkout@v6
         with:
-          path: code/tools/wacom-macos-precision-mode-gui/Helium/Wacom
-          repository: Wacom-Developer/wacom-device-kit-macos-api
-          ref: 63d4e579a8f120673ab0152f1888243f94beed60
-      # - name: Select XCode version
-      #   run: |
-      #     sudo ls -1 /Applications | grep "Xcode"
-      #     XCODE='/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer'
-      #     sudo xcode-select -s $XCODE
-      - run: make build-${{ matrix.arch }}
-        working-directory: code/tools/wacom-macos-precision-mode-gui
-
-  # ----------------------------------------------------------------------------
-
-  heliumd-build:
-    needs: delta
-    if: ${{ fromJson(needs.delta.outputs.all).heliumd == 'true' }}
-    strategy:
-      matrix:
-        os:
-          - macos-14
-          - macos-15
-        arch:
-          - arm64
-          - x86_64
-      fail-fast: false
-    timeout-minutes: 5
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          submodules: recursive
-      - run: xcodebuild -version
-      # - name: Select XCode version
-      #   run: |
-      #     sudo ls -1 /Applications | grep "Xcode"
-      #     XCODE='/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer'
-      #     sudo xcode-select -s $XCODE
-      - run: make ARCH=${{ matrix.arch }} build
-        working-directory: code/tools/wacom-macos-precision-mode-daemon
+          path: y
+          repository: nguyenvukhang/debian13
+          token: ${{ secrets.GH_DEBIAN13_TOKEN }}
+      - run: git config --global user.name 'github-actions[bot]'
+      - run: git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+      - working-directory: y
+        run: |
+          git ls-files | xargs rm -r
+          git branch -m e2db05ee9f448b75626f40d3d9002ba1a917f0a7
+          git checkout --orphan main
+          cp -r ${{ github.workspace }}/x/code/docs/debian13-setup/* .
+          git add --all
+          git commit -m 'First try'
+          git push --force --set-upstream origin main
 
   # ----------------------------------------------------------------------------
 
@@ -169,96 +169,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: cargo build
-
-  # ----------------------------------------------------------------------------
-
-  aquarium-swift-build:
-    needs: delta
-    if: ${{ fromJson(needs.delta.outputs.all).aquarium == 'true' }}
-    timeout-minutes: 5
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v6
-      - run: unzip problems.zip
-        working-directory: code/games/aquarium/problems/problem-db
-      - run: swift run -c release EngineCli
-        working-directory: code/games/aquarium/Aquarium/Engine
-
-  # ----------------------------------------------------------------------------
-
-  aquarium-rust-build:
-    needs: delta
-    if: ${{ fromJson(needs.delta.outputs.all).aquarium == 'true' }}
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-      fail-fast: false
-    timeout-minutes: 5
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v6
-      - run: unzip problems.zip
-        working-directory: code/games/aquarium/problems/problem-db
-      - run: cargo run --release
-        working-directory: code/games/aquarium/rust
-
-  # ----------------------------------------------------------------------------
-
-  debian13-setup-instructions-deploy:
-    needs: delta
-    if: ${{ fromJson(needs.delta.outputs.all).debian13 == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          path: x
-      - uses: actions/checkout@v6
-        with:
-          path: y
-          repository: nguyenvukhang/debian13
-          token: ${{ secrets.GH_DEBIAN13_TOKEN }}
-      - run: git config --global user.name 'github-actions[bot]'
-      - run: git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-      - working-directory: y
-        run: |
-          git ls-files | xargs rm -r
-          git branch -m e2db05ee9f448b75626f40d3d9002ba1a917f0a7
-          git checkout --orphan main
-          cp -r ${{ github.workspace }}/x/code/docs/debian13-setup/* .
-          git add --all
-          git commit -m 'First try'
-          git push --force --set-upstream origin main
-
-  # ----------------------------------------------------------------------------
-
-  canvas-sync-cli-test:
-    needs: delta
-    if: ${{ fromJson(needs.delta.outputs.all).canvas-sync-cli == 'true' }}
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - ubuntu-24.04
-          - ubuntu-22.04
-          - macos-15
-          - macos-14
-      fail-fast: false
-    timeout-minutes: 5
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: code/tools/canvas-sync-cli
-    steps:
-      - uses: actions/checkout@v6
-      - name: build
-        run: cargo build --release
-      - name: run tests
-        run: cargo test --release
 
   # ----------------------------------------------------------------------------
 
@@ -485,6 +395,96 @@ jobs:
         with:
           path: code/tools/gitnu/rust
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  # ----------------------------------------------------------------------------
+
+  helium-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).helium == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - macos-14
+          - macos-15
+        arch:
+          - arm64
+          - x86_64
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: actions/checkout@v6
+        with:
+          path: code/tools/wacom-macos-precision-mode-gui/Helium/Wacom
+          repository: Wacom-Developer/wacom-device-kit-macos-api
+          ref: 63d4e579a8f120673ab0152f1888243f94beed60
+      # - name: Select XCode version
+      #   run: |
+      #     sudo ls -1 /Applications | grep "Xcode"
+      #     XCODE='/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer'
+      #     sudo xcode-select -s $XCODE
+      - run: make build-${{ matrix.arch }}
+        working-directory: code/tools/wacom-macos-precision-mode-gui
+
+  # ----------------------------------------------------------------------------
+
+  heliumd-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).heliumd == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - macos-14
+          - macos-15
+        arch:
+          - arm64
+          - x86_64
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - run: xcodebuild -version
+      # - name: Select XCode version
+      #   run: |
+      #     sudo ls -1 /Applications | grep "Xcode"
+      #     XCODE='/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer'
+      #     sudo xcode-select -s $XCODE
+      - run: make ARCH=${{ matrix.arch }} build
+        working-directory: code/tools/wacom-macos-precision-mode-daemon
+
+  # ----------------------------------------------------------------------------
+
+  kopiwm-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).kopiwm == 'true' }}
+    strategy:
+      matrix:
+        os: [
+            # [latest stuff]
+            ubuntu-latest,
+            # [fixed versions]
+            ubuntu-24.04,
+            ubuntu-22.04,
+          ]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/kopiwm
+    steps:
+      - uses: actions/checkout@v6
+      - run: cp build.zig.zon ${{ github.workspace }}
+      - uses: mlugg/setup-zig@v2
+      - run: |
+          sudo apt-get update --yes
+          sudo apt-get install --yes libx11-dev libxft-dev libfreetype-dev libfontconfig-dev
+      - run: zig build
 
   # ----------------------------------------------------------------------------
 
