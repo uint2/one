@@ -1,0 +1,787 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  #[job] Detects changes in filepaths.
+  delta:
+    runs-on: ubuntu-latest
+    outputs:
+      all: ${{ toJson(steps.f.outputs) }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: python3 .github/path-filters.py
+      - run: cat .github/path-filters.yml
+      - uses: dorny/paths-filter@v4
+        id: f
+        with:
+          filters: .github/path-filters.yml
+
+  # ----------------------------------------------------------------------------
+
+  #[job] Checks the health of this repository with a simple, single Rust crate.
+  checkhealth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Rust files are formatted
+        run: git ls-files '*.rs' | xargs rustfmt --check
+
+      # Run our in-house health-check tooling.
+      - run: cargo install --locked --force --path .
+        working-directory: health
+      - run: monorepo-checkhealth
+
+  # ----------------------------------------------------------------------------
+
+  kopiwm-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).kopiwm == 'true' }}
+    strategy:
+      matrix:
+        os: [
+            # [latest stuff]
+            ubuntu-latest,
+            # [fixed versions]
+            ubuntu-24.04,
+            ubuntu-22.04,
+          ]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/kopiwm
+    steps:
+      - uses: actions/checkout@v6
+      - run: cp build.zig.zon ${{ github.workspace }}
+      - uses: mlugg/setup-zig@v2
+      - run: |
+          sudo apt-get update --yes
+          sudo apt-get install --yes libx11-dev libxft-dev libfreetype-dev libfontconfig-dev
+      - run: zig build
+
+  # ----------------------------------------------------------------------------
+
+  helium-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).helium == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - macos-14
+          - macos-15
+        arch:
+          - arm64
+          - x86_64
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: actions/checkout@v6
+        with:
+          path: code/tools/wacom-macos-precision-mode-gui/Helium/Wacom
+          repository: Wacom-Developer/wacom-device-kit-macos-api
+          ref: 63d4e579a8f120673ab0152f1888243f94beed60
+      # - name: Select XCode version
+      #   run: |
+      #     sudo ls -1 /Applications | grep "Xcode"
+      #     XCODE='/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer'
+      #     sudo xcode-select -s $XCODE
+      - run: make build-${{ matrix.arch }}
+        working-directory: code/tools/wacom-macos-precision-mode-gui
+
+  # ----------------------------------------------------------------------------
+
+  heliumd-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).heliumd == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - macos-14
+          - macos-15
+        arch:
+          - arm64
+          - x86_64
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - run: xcodebuild -version
+      # - name: Select XCode version
+      #   run: |
+      #     sudo ls -1 /Applications | grep "Xcode"
+      #     XCODE='/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer'
+      #     sudo xcode-select -s $XCODE
+      - run: make ARCH=${{ matrix.arch }} build
+        working-directory: code/tools/wacom-macos-precision-mode-daemon
+
+  # ----------------------------------------------------------------------------
+
+  diff-rs-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).diff-rs == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo build
+        working-directory: code/tools/diff-rs
+
+  # ----------------------------------------------------------------------------
+
+  draw-rs-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).draw-rs == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/draw-rs
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo build
+
+  # ----------------------------------------------------------------------------
+
+  aquarium-swift-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).aquarium == 'true' }}
+    timeout-minutes: 5
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: unzip problems.zip
+        working-directory: code/games/aquarium/problems/problem-db
+      - run: swift run -c release EngineCli
+        working-directory: code/games/aquarium/Aquarium/Engine
+
+  # ----------------------------------------------------------------------------
+
+  aquarium-rust-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).aquarium == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: unzip problems.zip
+        working-directory: code/games/aquarium/problems/problem-db
+      - run: cargo run --release
+        working-directory: code/games/aquarium/rust
+
+  # ----------------------------------------------------------------------------
+
+  debian13-setup-instructions-deploy:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).debian13 == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: x
+      - uses: actions/checkout@v6
+        with:
+          path: y
+          repository: nguyenvukhang/debian13
+          token: ${{ secrets.GH_DEBIAN13_TOKEN }}
+      - run: git config --global user.name 'github-actions[bot]'
+      - run: git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+      - working-directory: y
+        run: |
+          git ls-files | xargs rm -r
+          git branch -m e2db05ee9f448b75626f40d3d9002ba1a917f0a7
+          git checkout --orphan main
+          cp -r ${{ github.workspace }}/x/code/docs/debian13-setup/* .
+          git add --all
+          git commit -m 'First try'
+          git push --force --set-upstream origin main
+
+  # ----------------------------------------------------------------------------
+
+  canvas-sync-cli-test:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).canvas-sync-cli == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/canvas-sync-cli
+    steps:
+      - uses: actions/checkout@v6
+      - name: build
+        run: cargo build --release
+      - name: run tests
+        run: cargo test --release
+
+  # ----------------------------------------------------------------------------
+
+  git-checkout2-build-and-test-c:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).git-checkout2 == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/git-checkout2
+    steps:
+      - uses: actions/checkout@v6
+      - run: make configure-debug
+      - run: sudo make install
+      - run: make test
+
+  # ----------------------------------------------------------------------------
+
+  git-checkout2-build-zig:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).git-checkout2 == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/git-checkout2/zig
+    steps:
+      - uses: actions/checkout@v6
+      - run: cp build.zig.zon ${{ github.workspace }}
+      - uses: mlugg/setup-zig@v2
+      - run: zig build run
+
+  # ----------------------------------------------------------------------------
+
+  git-ln-build-c:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).git-ln == 'true' }}
+    strategy:
+      matrix:
+        os: [
+            # [latest stuff]
+            ubuntu-latest,
+            macos-latest,
+            # [fixed versions]
+            ubuntu-24.04,
+            ubuntu-22.04,
+            macos-15,
+            macos-14,
+            # [unsupported]
+            # windows-latest,
+            # windows-2025,
+            # windows-2022,
+          ]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/ln/c
+    steps:
+      - uses: actions/checkout@v6
+      - run: make configure
+      - run: make install
+
+  # ----------------------------------------------------------------------------
+
+  git-ln-build-zig-rust:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).git-ln == 'true' }}
+    strategy:
+      matrix:
+        os: [
+            # [latest stuff]
+            ubuntu-latest,
+            macos-latest,
+            # [fixed versions]
+            ubuntu-24.04,
+            ubuntu-22.04,
+            macos-15,
+            macos-14,
+            # [unsupported]
+            windows-latest,
+            windows-2025,
+            windows-2022,
+          ]
+        lang: [zig, rust]
+        include:
+          - lang: zig
+            tool: zig
+          - lang: rust
+            tool: cargo
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/ln/${{ matrix.lang }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: cp build.zig.zon ${{ github.workspace }}
+        if: ${{ matrix.lang == 'zig' }}
+      - uses: mlugg/setup-zig@v2
+        if: ${{ matrix.lang == 'zig' }}
+      - run: ${{ matrix.tool }} build
+
+  # ----------------------------------------------------------------------------
+
+  gitlab-api-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).gitlab-api == 'true' }}
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo build
+        working-directory: code/tools/gitlab-api
+
+  # ----------------------------------------------------------------------------
+
+  gitnu-c-build-and-test:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).gitnu-c == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/gitnu/c
+    steps:
+      - uses: actions/checkout@v6
+      - run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+      - run: make configure-test
+      - run: make test
+      - run: make configure
+      - run: sudo make install
+
+  # ----------------------------------------------------------------------------
+
+  gitnu-rs-build-and-test:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).gitnu-rs == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run tests
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          cargo build
+          cargo test
+        working-directory: code/tools/gitnu/rust
+
+  gitnu-rs-meta:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).gitnu-rs == 'true' }}
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.V.outputs.version }}
+      tag: ${{ steps.V.outputs.tag }}
+      ref: ${{ steps.V.outputs.ref }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo install cargo-get
+      - id: V
+        working-directory: code/tools/gitnu/rust
+        run: |
+          VERSION=$(cargo get package.version)
+          TAG="gitnu-v${VERSION}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "ref=refs/tags/${TAG}" >> $GITHUB_OUTPUT
+
+  gitnu-rs-publish-crates-io:
+    name: Publish gitnu to Crates.io
+    runs-on: ubuntu-latest
+    needs: [gitnu-rs-build-and-test, gitnu-rs-meta]
+    if: github.ref == needs.gitnu-rs-meta.outputs.ref
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.meta.outputs.tag }}
+      - uses: katyo/publish-crates@v2
+        with:
+          path: code/tools/gitnu/rust
+          registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+  # ----------------------------------------------------------------------------
+
+  loan-payoff-strategy-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).loan-payoff-strategy == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.26
+      - run: make
+        working-directory: code/tools/loan-payoff-strategy
+
+  # ----------------------------------------------------------------------------
+
+  make-rs-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).make-rs == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo run
+        working-directory: code/tools/make-rs
+
+  # ----------------------------------------------------------------------------
+
+  numerical-methods-test:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).numerical-methods == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+          - windows-2025
+          - windows-2022
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/numerical-methods
+    steps:
+      - uses: actions/checkout@v6
+      - name: build
+        run: cargo build --release
+      - name: run tests
+        run: cargo test --release
+
+  # ----------------------------------------------------------------------------
+
+  personal-site:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).personal-site == 'true' }}
+    runs-on: ubuntu-latest
+    # permissions:
+    #   deployments: write
+    steps:
+      - uses: actions/checkout@v6
+
+      # Pull in the blog posts.
+      - name: Checkout blog posts repo (private)
+        uses: actions/checkout@v6
+        with:
+          path: .git/blog
+          repository: nguyenvukhang/blog
+          token: ${{ secrets.GH_BLOGPOSTS_TOKEN }}
+      - name: Copy over blog posts
+        run: |
+          rm -rf             code/web/site/blog
+          mkdir              code/web/site/blog
+          cp .git/blog/*.mdx code/web/site/blog || exit 0
+          cp .git/blog/*.md  code/web/site/blog || exit 0
+
+      # Compress fonts with Woff2.
+      - name: Checkout google/woff2
+        uses: actions/checkout@v6
+        with:
+          path: .git/woff2
+          repository: google/woff2
+          ref: 1c69169e9e1811dccd6c54c532fedda300233968
+          submodules: recursive
+      - name: Build woff2_compress
+        working-directory: .git/woff2
+        run: make clean all
+      - name: Compress fonts
+        working-directory: code/web/site/fonts
+        run: |
+          pip install fonttools==4.63.0
+          WOFF2_COMPRESS='${{ github.workspace }}/.git/woff2/woff2_compress' python3 build-fonts.py
+
+      # Build with Astro 6.
+      - uses: withastro/action@v6
+        with:
+          path: code/web/site
+
+      # Deploy to Cloudflare.
+      - uses: cloudflare/wrangler-action@v4
+        with:
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          apiToken: ${{ secrets.CLOUDFLARE_NGUYENVUKHANGDOTCOM_API_TOKEN }}
+          command: pages deploy code/web/site/dist --project-name=nguyenvukhangdotcom
+          # gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+  # ----------------------------------------------------------------------------
+
+  rofi-pdf-search-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).rofi-pdf-search == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo build
+        working-directory: code/tools/rofi-pdf-search
+
+  # ----------------------------------------------------------------------------
+
+  sudoku-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).sudoku == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo run --release
+        working-directory: code/games/sudoku/rust
+
+  # ----------------------------------------------------------------------------
+
+  stats-calc-test:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).stats-calc == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: code/tools/stats-calc
+    steps:
+      - uses: actions/checkout@v6
+      - name: build
+        run: cargo build --release
+      - name: run tests
+        run: cargo test --release
+
+  # ----------------------------------------------------------------------------
+  # Let this 2 jobs be a demonstrator of how a matrix can be read from a
+  # preceding job, loaded from a JSON file.
+
+  t-runner-get-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.M.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: M
+        run: |
+          JSON=$(cat .github/os.json)
+          JSON="${JSON//$'\n'/}"
+          echo "matrix=${JSON}"
+          echo "matrix=${JSON}" >> $GITHUB_OUTPUT
+
+  t-runner-build:
+    needs: [t-runner-get-matrix, delta]
+    if: ${{ fromJson(needs.delta.outputs.all).t-runner == 'true' }}
+    strategy:
+      matrix:
+        os: ${{ fromJson(needs.t-runner-get-matrix.outputs.matrix) }}
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - working-directory: code/tools/t-runner
+        run: make build
+
+  # ----------------------------------------------------------------------------
+
+  solid-rect-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).solid-rect == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo run
+        working-directory: code/tools/solid-rect
+
+  # ----------------------------------------------------------------------------
+
+  tailwind-rs-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).tailwind-rs == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo run
+        working-directory: code/tools/tailwind-rs
+
+  # ----------------------------------------------------------------------------
+
+  tmux-fzf-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).tmux-fzf == 'true' }}
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - ubuntu-24.04
+          - ubuntu-22.04
+          - macos-15
+          - macos-14
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo build
+        working-directory: code/tools/tmux-fzf
+
+  # ----------------------------------------------------------------------------
+
+  wordle-build:
+    needs: delta
+    if: ${{ fromJson(needs.delta.outputs.all).wordle == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo run --release
+        working-directory: code/games/wordle

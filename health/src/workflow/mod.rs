@@ -60,6 +60,7 @@ pub fn main() {
         wf.assert_uses_version("mlugg/setup-zig", "v2");
         wf.assert_uses_version("actions/upload-artifact", "v7");
         wf.assert_uses_version("softprops/action-gh-release", "v3");
+        wf.assert_uses_version("dorny/paths-filter", "v4");
 
         // Pretty-print the workflow
         let mut path_display =
