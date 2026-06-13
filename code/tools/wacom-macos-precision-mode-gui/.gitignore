@@ -1,0 +1,11 @@
+# Xcode
+DerivedData
+*.xcarchive
+.DS_Store
+build
+*/build/*
+*.pbxuser
+!default.pbxuser
+xcuserdata
+profile
+*.moved-aside

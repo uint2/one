@@ -1,0 +1,38 @@
+name: Helium build
+
+on:
+  push:
+    paths:
+      - "code/tools/wacom-macos-precision-mode-gui/**/*"
+      - .github/workflows/helium.yml
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os:
+          - macos-14
+          - macos-15
+        arch:
+          - arm64
+          - x86_64
+      fail-fast: false
+    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: actions/checkout@v6
+        with:
+          path: code/tools/wacom-macos-precision-mode-gui/Helium/Wacom
+          repository: Wacom-Developer/wacom-device-kit-macos-api
+          ref: 63d4e579a8f120673ab0152f1888243f94beed60
+      # - name: Select XCode version
+      #   run: |
+      #     sudo ls -1 /Applications | grep "Xcode"
+      #     XCODE='/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer'
+      #     sudo xcode-select -s $XCODE
+      - run: make build-${{ matrix.arch }}
+        working-directory: code/tools/wacom-macos-precision-mode-gui
