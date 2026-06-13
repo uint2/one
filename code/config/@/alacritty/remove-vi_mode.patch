@@ -24,7 +24,7 @@ index 399f2fb5..19dfb034 100644
 @@ -75,7 +75,12 @@ install-universal: $(INSTALL)-native ## Mount universal disk image
  $(INSTALL)-%: $(DMG_NAME)-%
  	@open $(DMG_DIR)/$(DMG_NAME)
- 
+
 -.PHONY: app binary clean dmg install $(TARGET) $(TARGET)-universal
 +khang:
 +	cargo build --release
@@ -32,7 +32,7 @@ index 399f2fb5..19dfb034 100644
 +	cp ./target/release/alacritty /Applications/Alacritty.app/Contents/MacOS/alacritty
 +
 +.PHONY: app binary clean dmg install $(TARGET) $(TARGET)-universal khang
- 
+
  clean: ## Remove all build artifacts
  	@cargo clean
 diff --git a/alacritty/src/config/bindings.rs b/alacritty/src/config/bindings.rs
@@ -40,17 +40,17 @@ index e3ee41e7..87b1f86f 100644
 --- a/alacritty/src/config/bindings.rs
 +++ b/alacritty/src/config/bindings.rs
 @@ -13,7 +13,6 @@ use alacritty_config_derive::{ConfigDeserialize, SerdeReplace};
- 
+
  use alacritty_terminal::config::Program;
  use alacritty_terminal::term::TermMode;
 -use alacritty_terminal::vi_mode::ViMotion;
- 
+
  use crate::config::ui_config::Hint;
- 
+
 @@ -96,14 +95,6 @@ pub enum Action {
      #[config(skip)]
      Hint(Hint),
- 
+
 -    /// Move vi mode cursor.
 -    #[config(skip)]
 -    ViMotion(ViMotion),
@@ -65,17 +65,17 @@ index e3ee41e7..87b1f86f 100644
 @@ -196,9 +187,6 @@ pub enum Action {
      /// Clear active selection.
      ClearSelection,
- 
+
 -    /// Toggle vi mode.
 -    ToggleViMode,
 -
      /// Allow receiving char input.
      ReceiveChar,
- 
+
 @@ -218,18 +206,6 @@ impl From<&'static str> for Action {
      }
  }
- 
+
 -impl From<ViAction> for Action {
 -    fn from(action: ViAction) -> Self {
 -        Self::Vi(action)
@@ -102,7 +102,7 @@ index e3ee41e7..87b1f86f 100644
          }
      }
  }
- 
+
 -/// Vi mode specific actions.
 -#[derive(ConfigDeserialize, Debug, Copy, Clone, PartialEq, Eq)]
 -pub enum ViAction {
@@ -216,18 +216,18 @@ index e3ee41e7..87b1f86f 100644
              SearchAction::SearchConfirm;
          Escape,                        +BindingMode::SEARCH; SearchAction::SearchCancel;
 @@ -803,7 +688,7 @@ impl<'a> Deserialize<'a> for ModeWrapper {
- 
+
              fn expecting(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                  f.write_str(
 -                    "a combination of AppCursor | AppKeypad | Alt | Vi, possibly with negation (~)",
 +                    "a combination of AppCursor | AppKeypad | Alt, possibly with negation (~)",
                  )
              }
- 
+
 @@ -1048,11 +933,7 @@ impl<'a> Deserialize<'a> for RawBinding {
- 
+
                              let value = map.next_value::<SerdeValue>()?;
- 
+
 -                            action = if let Ok(vi_action) = ViAction::deserialize(value.clone()) {
 -                                Some(vi_action.into())
 -                            } else if let Ok(vi_motion) = ViMotion::deserialize(value.clone()) {
@@ -239,7 +239,7 @@ index e3ee41e7..87b1f86f 100644
                                  Some(search_action.into())
 @@ -1113,17 +994,6 @@ impl<'a> Deserialize<'a> for RawBinding {
                  let mods = mods.unwrap_or_default();
- 
+
                  let action = match (action, chars, command) {
 -                    (Some(action @ Action::ViMotion(_)), None, None)
 -                    | (Some(action @ Action::Vi(_)), None, None) => {
@@ -261,7 +261,7 @@ index df49db31..dafcb11a 100644
 +++ b/alacritty/src/config/mod.rs
 @@ -22,9 +22,7 @@ mod bindings;
  mod mouse;
- 
+
  use crate::cli::Options;
 -pub use crate::config::bindings::{
 -    Action, Binding, BindingMode, Key, MouseAction, SearchAction, ViAction,
@@ -277,12 +277,12 @@ index f1757ae6..711c75a3 100644
 @@ -343,9 +343,6 @@ pub struct Display {
      /// Hint highlighted by the mouse.
      pub highlighted_hint: Option<HintMatch>,
- 
+
 -    /// Hint highlighted by the vi mode cursor.
 -    pub vi_highlighted_hint: Option<HintMatch>,
 -
      pub is_wayland: bool,
- 
+
      /// UI cursor visibility for blinking.
 @@ -512,7 +509,6 @@ impl Display {
              size_info,
@@ -295,7 +295,7 @@ index f1757ae6..711c75a3 100644
 @@ -784,9 +780,6 @@ impl Display {
          let metrics = self.glyph_cache.font_metrics();
          let size_info = self.size_info;
- 
+
 -        let vi_mode = terminal.mode().contains(TermMode::VI);
 -        let vi_cursor_point = if vi_mode { Some(terminal.vi_mode_cursor.point) } else { None };
 -
@@ -304,20 +304,20 @@ index f1757ae6..711c75a3 100644
          }
 @@ -801,8 +794,7 @@ impl Display {
          let mut lines = RenderLines::new();
- 
+
          // Optimize loop hint comparator.
 -        let has_highlighted_hint =
 -            self.highlighted_hint.is_some() || self.vi_highlighted_hint.is_some();
 +        let has_highlighted_hint = self.highlighted_hint.is_some();
- 
+
          // Draw grid.
          {
 @@ -814,7 +806,6 @@ impl Display {
- 
+
              let glyph_cache = &mut self.glyph_cache;
              let highlighted_hint = &self.highlighted_hint;
 -            let vi_highlighted_hint = &self.vi_highlighted_hint;
- 
+
              self.renderer.draw_cells(
                  &size_info,
 @@ -829,9 +820,6 @@ impl Display {
@@ -331,9 +331,9 @@ index f1757ae6..711c75a3 100644
                              cell.flags.insert(Flags::UNDERLINE);
                          }
 @@ -847,17 +835,10 @@ impl Display {
- 
+
          let mut rects = lines.rects(&metrics, &size_info);
- 
+
 -        if let Some(vi_cursor_point) = vi_cursor_point {
 -            // Indicate vi mode by showing the cursor's position in the top right corner.
 -            let line = (-vi_cursor_point.line.0 + size_info.bottommost_line().0) as usize;
@@ -347,18 +347,18 @@ index f1757ae6..711c75a3 100644
              self.draw_line_indicator(config, total_lines, None, display_offset);
 -        };
 +        }
- 
+
          // Draw cursor.
          rects.extend(cursor.rects(&size_info, config.terminal_config.cursor.thickness()));
 @@ -974,8 +955,7 @@ impl Display {
- 
+
          // Draw hyperlink uri preview.
          if has_highlighted_hint {
 -            let cursor_point = vi_cursor_point.or(Some(cursor_point));
 -            self.draw_hyperlink_preview(config, cursor_point, display_offset);
 +            self.draw_hyperlink_preview(config, Some(cursor_point), display_offset);
          }
- 
+
          // Frame event should be requested before swapping buffers on Wayland, since it requires
 @@ -1024,16 +1004,7 @@ impl Display {
          mouse: &Mouse,
@@ -375,7 +375,7 @@ index f1757ae6..711c75a3 100644
 -        let mut dirty = vi_highlighted_hint != self.vi_highlighted_hint;
 -        self.vi_highlighted_hint = vi_highlighted_hint;
 +        let mut dirty = false;
- 
+
          // Abort if mouse highlighting conditions are not met.
          if !mouse.inside_text_area || !term.selection.as_ref().map_or(true, Selection::is_empty) {
 @@ -1193,7 +1164,6 @@ impl Display {
@@ -401,7 +401,7 @@ index 2ccd42cb..89bb1606 100644
 +++ b/alacritty/src/event.rs
 @@ -242,11 +242,7 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
          }
- 
+
          // Update selection.
 -        if self.terminal.mode().contains(TermMode::VI)
 -            && self.terminal.selection.as_ref().map_or(false, |s| !s.is_empty())
@@ -415,7 +415,7 @@ index 2ccd42cb..89bb1606 100644
 @@ -295,12 +291,6 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
          // Update selection.
          selection.update(point, side);
- 
+
 -        // Move vi cursor and expand selection.
 -        if self.terminal.mode().contains(TermMode::VI) && !self.search_active() {
 -            self.terminal.vi_mode_cursor.point = point;
@@ -428,7 +428,7 @@ index 2ccd42cb..89bb1606 100644
 @@ -312,21 +302,6 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
          self.copy_selection(ClipboardType::Selection);
      }
- 
+
 -    fn toggle_selection(&mut self, ty: SelectionType, point: Point, side: Side) {
 -        match &mut self.terminal.selection {
 -            Some(selection) if selection.ty == ty && !selection.is_empty() => {
@@ -449,7 +449,7 @@ index 2ccd42cb..89bb1606 100644
          self.terminal.mode().intersects(TermMode::MOUSE_MODE)
 @@ -475,23 +450,13 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
          self.search_state.focused_match = None;
- 
+
          // Store original search position as origin and reset location.
 -        if self.terminal.mode().contains(TermMode::VI) {
 -            self.search_state.origin = self.terminal.vi_mode_cursor.point;
@@ -475,7 +475,7 @@ index 2ccd42cb..89bb1606 100644
 +            Direction::Right => Point::new(viewport_top, Column(0)),
 +            Direction::Left => Point::new(viewport_bottom, last_column),
 +        };
- 
+
          // Enable IME so we can input into the search bar with it if we were in Vi mode.
          self.window().set_ime_allowed(true);
 @@ -735,12 +700,6 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
@@ -492,7 +492,7 @@ index 2ccd42cb..89bb1606 100644
              },
          }
 @@ -775,11 +734,6 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
- 
+
          selection.ty = selection_type;
          self.update_selection(point, cell_side);
 -
@@ -501,12 +501,12 @@ index 2ccd42cb..89bb1606 100644
 -            self.terminal_mut().vi_mode_cursor.point = point;
 -        }
      }
- 
+
      /// Paste a text into the terminal.
 @@ -811,35 +765,6 @@ impl<'a, N: Notify + 'a, T: EventListener> input::ActionContext<T> for ActionCon
          }
      }
- 
+
 -    /// Toggle the vi mode status.
 -    #[inline]
 -    fn toggle_vi_mode(&mut self) {
@@ -541,16 +541,16 @@ index 2ccd42cb..89bb1606 100644
      }
 @@ -905,7 +830,6 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
          }
- 
+
          // Reset display offset and cursor position.
 -        self.terminal.vi_mode_cursor.point = self.search_state.origin;
          self.terminal.scroll_display(Scroll::Delta(self.search_state.display_offset_delta));
          self.search_state.display_offset_delta = 0;
- 
+
 @@ -929,14 +853,6 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
              Some(regex_match) => {
                  let old_offset = self.terminal.grid().display_offset() as i32;
- 
+
 -                if self.terminal.mode().contains(TermMode::VI) {
 -                    // Move vi cursor to the start of the match.
 -                    self.terminal.vi_goto_point(*regex_match.start());
@@ -561,9 +561,9 @@ index 2ccd42cb..89bb1606 100644
 -
                  // Update the focused match.
                  self.search_state.focused_match = Some(regex_match);
- 
+
 @@ -968,9 +884,6 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
- 
+
      /// Cleanup the search state.
      fn exit_search(&mut self) {
 -        let vi_mode = self.terminal.mode().contains(TermMode::VI);
@@ -571,7 +571,7 @@ index 2ccd42cb..89bb1606 100644
 -
          self.display.pending_update.dirty = true;
          self.search_state.history_index = None;
- 
+
 @@ -981,17 +894,12 @@ impl<'a, N: Notify + 'a, T: EventListener> ActionContext<'a, N, T> {
      /// Update the cursor blinking state.
      fn update_cursor_blinking(&mut self) {
@@ -582,14 +582,14 @@ index 2ccd42cb..89bb1606 100644
 -            cursor_style = self.config.terminal_config.cursor.vi_mode_style.unwrap_or(cursor_style);
 -        }
 +        let cursor_style = self.config.terminal_config.cursor.style;
- 
+
          // Check terminal cursor style.
          let terminal_blinking = self.terminal.cursor_style().blinking;
          let mut blinking = cursor_style.blinking_override().unwrap_or(terminal_blinking);
 -        blinking &= (vi_mode || self.terminal().mode().contains(TermMode::SHOW_CURSOR))
 -            && self.display().ime.preedit().is_none();
 +        blinking &= self.display().ime.preedit().is_none();
- 
+
          // Update cursor blinking state.
          let window_id = self.display.window.id();
 diff --git a/alacritty/src/input.rs b/alacritty/src/input.rs
@@ -606,7 +606,7 @@ index 5728665a..4834fa32 100644
  use alacritty_terminal::term::search::Match;
  use alacritty_terminal::term::{ClipboardType, Term, TermMode};
 -use alacritty_terminal::vi_mode::ViMotion;
- 
+
  use crate::clipboard::Clipboard;
 -use crate::config::{Action, BindingMode, Key, MouseAction, SearchAction, UiConfig, ViAction};
 +use crate::config::{Action, BindingMode, Key, MouseAction, SearchAction, UiConfig};
@@ -632,7 +632,7 @@ index 5728665a..4834fa32 100644
 @@ -128,21 +125,6 @@ pub trait ActionContext<T: EventListener> {
      }
  }
- 
+
 -impl Action {
 -    fn toggle_selection<T, A>(ctx: &mut A, ty: SelectionType)
 -    where
@@ -781,7 +781,7 @@ index 5728665a..4834fa32 100644
                  let term = ctx.terminal_mut();
                  let scroll_lines = -(term.screen_lines() as i32 / 2);
 -                term.vi_mode_cursor = term.vi_mode_cursor.scroll(term, scroll_lines);
- 
+
                  ctx.scroll(Scroll::Delta(scroll_lines));
              },
 @@ -333,23 +210,10 @@ impl<T: EventListener> Execute<T> for Action {
@@ -809,7 +809,7 @@ index 5728665a..4834fa32 100644
              },
              Action::ClearHistory => ctx.terminal_mut().clear_screen(ClearMode::Saved),
 @@ -607,7 +471,6 @@ impl<T: EventListener, A: ActionContext<T>> Processor<T, A> {
- 
+
          // Move vi mode cursor to mouse click position.
          if self.ctx.terminal().mode().contains(TermMode::VI) && !self.ctx.search_active() {
 -            self.ctx.terminal_mut().vi_mode_cursor.point = point;
@@ -827,7 +827,7 @@ index 885d71a4..b11d57f4 100644
 -use alacritty_terminal::term::{Term, TermMode};
 +use alacritty_terminal::term::Term;
  use alacritty_terminal::tty;
- 
+
  #[cfg(unix)]
 @@ -562,11 +562,7 @@ impl WindowContext {
          // Compute cursor positions before resize.
@@ -839,7 +839,7 @@ index 885d71a4..b11d57f4 100644
 -            search_state.direction == Direction::Left
 -        };
 +        let origin_at_bottom = search_state.direction == Direction::Left;
- 
+
          display.handle_update(
              terminal,
 diff --git a/alacritty_terminal/src/lib.rs b/alacritty_terminal/src/lib.rs
@@ -851,7 +851,7 @@ index c1ba3690..8e6a2fc1 100644
  pub mod thread;
  pub mod tty;
 -pub mod vi_mode;
- 
+
  pub use crate::grid::Grid;
  pub use crate::term::Term;
 diff --git a/alacritty_terminal/src/term/mod.rs b/alacritty_terminal/src/term/mod.rs
@@ -868,23 +868,23 @@ index fe9c7794..87590f06 100644
  use crate::term::cell::{Cell, Flags, Hyperlink, LineLength};
  use crate::term::color::{Colors, Rgb};
 -use crate::vi_mode::{ViModeCursor, ViMotion};
- 
+
  pub mod cell;
  pub mod color;
 @@ -245,9 +244,6 @@ pub struct Term<T> {
      /// Terminal focus controlling the cursor shape.
      pub is_focused: bool,
- 
+
 -    /// Cursor for keyboard selection.
 -    pub vi_mode_cursor: ViModeCursor,
 -
      pub selection: Option<Selection>,
- 
+
      /// Currently active grid.
 @@ -314,13 +310,6 @@ impl<T> Term<T> {
          self.grid.scroll_display(scroll);
          self.event_proxy.send_event(Event::MouseCursorDirty);
- 
+
 -        // Clamp vi mode cursor to the viewport.
 -        let viewport_start = -(self.grid.display_offset() as i32);
 -        let viewport_end = viewport_start + self.bottommost_line().0;
@@ -905,25 +905,25 @@ index fe9c7794..87590f06 100644
              scroll_region,
 @@ -375,16 +363,9 @@ impl<T> Term<T> {
          // Update tracking of cursor, selection, and vi mode cursor.
- 
+
          let display_offset = self.grid().display_offset();
 -        let vi_cursor_point = if self.mode.contains(TermMode::VI) {
 -            point_to_viewport(display_offset, self.vi_mode_cursor.point)
 -        } else {
 -            None
 -        };
- 
+
          let previous_cursor = mem::replace(&mut self.damage.last_cursor, self.grid.cursor.point);
          let previous_selection = mem::replace(&mut self.damage.last_selection, selection);
 -        let previous_vi_cursor_point =
 -            mem::replace(&mut self.damage.last_vi_cursor_point, vi_cursor_point);
- 
+
          // Early return if the entire terminal is damaged.
          if self.damage.is_fully_damaged {
 @@ -402,12 +383,6 @@ impl<T> Term<T> {
          // Always damage current cursor.
          self.damage_cursor();
- 
+
 -        // Vi mode doesn't update the terminal content, thus only last vi cursor position and the
 -        // new one should be damaged.
 -        if let Some(previous_vi_cursor_point) = previous_vi_cursor_point {
@@ -938,13 +938,13 @@ index fe9c7794..87590f06 100644
          let min_delta = cmp::min(0, num_lines as i32 - self.grid.cursor.point.line.0 - 1);
          delta = cmp::min(cmp::max(delta, min_delta), history_size as i32);
 -        self.vi_mode_cursor.point.line += delta;
- 
+
          // Invalidate selection and tabs only when necessary.
          if old_cols != num_cols {
 @@ -626,14 +600,6 @@ impl<T> Term<T> {
          self.grid.resize(!is_alt, num_lines, num_cols);
          self.inactive_grid.resize(is_alt, num_lines, num_cols);
- 
+
 -        // Clamp vi cursor to viewport.
 -        let vi_point = self.vi_mode_cursor.point;
 -        let viewport_top = Line(-(self.grid.display_offset() as i32));
@@ -955,11 +955,11 @@ index fe9c7794..87590f06 100644
 -
          // Reset scrolling region.
          self.scroll_region = Line(0)..Line(self.screen_lines() as i32);
- 
+
 @@ -683,12 +649,6 @@ impl<T> Term<T> {
          self.selection =
              self.selection.take().and_then(|s| s.rotate(self, &region, -(lines as i32)));
- 
+
 -        // Scroll vi mode cursor.
 -        let line = &mut self.vi_mode_cursor.point.line;
 -        if region.start <= *line && region.end > *line {
@@ -971,7 +971,7 @@ index fe9c7794..87590f06 100644
          self.mark_fully_damaged();
 @@ -710,14 +670,6 @@ impl<T> Term<T> {
          self.selection = self.selection.take().and_then(|s| s.rotate(self, &region, lines as i32));
- 
+
          self.grid.scroll_up(&region, lines);
 -
 -        // Scroll vi mode cursor.
@@ -983,11 +983,11 @@ index fe9c7794..87590f06 100644
 -        }
          self.mark_fully_damaged();
      }
- 
+
 @@ -750,68 +702,10 @@ impl<T> Term<T> {
      {
          self.mode ^= TermMode::VI;
- 
+
 -        if self.mode.contains(TermMode::VI) {
 -            let display_offset = self.grid.display_offset() as i32;
 -            if self.grid.cursor.point.line > self.bottommost_line() - display_offset {
@@ -1003,7 +1003,7 @@ index fe9c7794..87590f06 100644
          // Update UI about cursor blinking state changes.
          self.event_proxy.send_event(Event::CursorBlinkingChange);
      }
- 
+
 -    /// Move vi mode cursor.
 -    #[inline]
 -    pub fn vi_motion(&mut self, motion: ViMotion)
@@ -1067,12 +1067,12 @@ index fe9c7794..87590f06 100644
 -                    self.vi_mode_cursor.point.line =
 -                        (self.vi_mode_cursor.point.line - lines).grid_clamp(self, Boundary::Grid);
                  }
- 
+
                  self.selection = None;
 @@ -1613,9 +1499,6 @@ impl<T: EventListener> Handler for Term<T> {
              ansi::ClearMode::Saved if self.history_size() > 0 => {
                  self.grid.clear_history();
- 
+
 -                self.vi_mode_cursor.point.line =
 -                    self.vi_mode_cursor.point.line.grid_clamp(self, Boundary::Cursor);
 -
@@ -1084,7 +1084,7 @@ index fe9c7794..87590f06 100644
          self.title = None;
          self.selection = None;
 -        self.vi_mode_cursor = Default::default();
- 
+
          // Preserve vi mode across resets.
          self.mode &= TermMode::VI;
 @@ -2037,7 +1919,7 @@ impl RenderableCursor {
@@ -1097,31 +1097,31 @@ index fe9c7794..87590f06 100644
              point.column -= 1;
          }
 @@ -2225,21 +2107,17 @@ mod tests {
- 
+
          // Change display_offset to topmost.
          term.grid_mut().scroll_display(Scroll::Top);
 -        term.vi_mode_cursor = ViModeCursor::new(Point::new(Line(-11), Column(0)));
- 
+
          // Scrollable amount to bottom is 11.
          term.scroll_display(Scroll::PageDown);
 -        assert_eq!(term.vi_mode_cursor.point, Point::new(Line(-1), Column(0)));
          assert_eq!(term.grid.display_offset(), 1);
- 
+
          // Scrollable amount to bottom is 1.
          term.scroll_display(Scroll::PageDown);
 -        assert_eq!(term.vi_mode_cursor.point, Point::new(Line(0), Column(0)));
          assert_eq!(term.grid.display_offset(), 0);
- 
+
          // Scrollable amount to bottom is 0.
          term.scroll_display(Scroll::PageDown);
 -        assert_eq!(term.vi_mode_cursor.point, Point::new(Line(0), Column(0)));
          assert_eq!(term.grid.display_offset(), 0);
      }
- 
+
 @@ -2714,14 +2592,6 @@ mod tests {
- 
+
          // Check that `Vi` cursor in vi mode is being always damaged.
- 
+
 -        term.toggle_vi_mode();
 -        // Put Vi cursor to a different location than normal cursor.
 -        term.vi_goto_point(Point::new(Line(5), Column(5)));
@@ -1131,7 +1131,7 @@ index fe9c7794..87590f06 100644
 -        let line = vi_cursor_point.line.0 as usize;
 -        let left = vi_cursor_point.column.0;
          let right = left;
- 
+
          let mut damaged_lines = match term.damage(None) {
 diff --git a/alacritty_terminal/src/vi_mode.rs b/alacritty_terminal/src/vi_mode.rs
 deleted file mode 100644
@@ -1960,6 +1960,5 @@ index 0cdc6a69..00000000
 -        assert_eq!(cursor.point, Point::new(Line(19), Column(0)));
 -    }
 -}
--- 
+--
 2.40.0
-

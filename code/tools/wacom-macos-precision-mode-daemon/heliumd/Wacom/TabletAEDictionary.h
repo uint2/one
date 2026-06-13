@@ -19,33 +19,33 @@
 //////////////////////////////////////////////////////////////////////////////
 // Classes
 //
-//	Driver Target ('WaCM' application)                            
-//		|                                                        
-//		|                                                        
+//	Driver Target ('WaCM' application)
+//		|
+//		|
 //		+--- cWTDDriver
-//		|			|                                        
-//		|			+--- cWTDTablet                                                        
-//		|					|                                        
-//		|					|--- cWTDExpressKey                    
-//		|					|--- cWTDTouchRing                   
-//		|					|--- cWTDTouchStrip                   
-//		|					|                                        
+//		|			|
+//		|			+--- cWTDTablet
+//		|					|
+//		|					|--- cWTDExpressKey
+//		|					|--- cWTDTouchRing
+//		|					|--- cWTDTouchStrip
+//		|					|
 //		|					|--- cWTDCustomizedApp (optional level)
 //		|							|
-//		|							|--- cWTDMenuItem                    
-//		|							|--- cWTDPopItem                    
-//		|							|--- cWTDTransducer                 
+//		|							|--- cWTDMenuItem
+//		|							|--- cWTDPopItem
+//		|							|--- cWTDTransducer
 //		|									|
-//		|									|--- cWTDButton                     
-//		|									|--- cWTDRoller                     
-//		|									|--- cWTDWheel                     
-//		|                                                        
-//		+--- cWTDContext                          
-//					|                                        
-//					|--- cWTDExpressKey                    
-//					|--- cWTDTouchRing                   
+//		|									|--- cWTDButton
+//		|									|--- cWTDRoller
+//		|									|--- cWTDWheel
+//		|
+//		+--- cWTDContext
+//					|
+//					|--- cWTDExpressKey
+//					|--- cWTDTouchRing
 //					|--- cWTDTouchStrip
-                                                              
+
 
 #define cWTDDriver					'Drvr'
 #define cWTDTablet					'Tblt'
@@ -279,7 +279,7 @@
 #define eEventProximity					'WePx'
 #define eEventPointer					'WePt'
 
-#pragma mark 
+#pragma mark
 #pragma mark *** Context Attributes ***
 // Context Properties
 #define pContextPositiongMode			pPositioningMode	// does not exist yet
@@ -291,24 +291,24 @@
 #define pContextTransducerType		'Ctdt' 				// does not exist yet
 #define pContextTransducerSN			'Ctd#' 				// does not exist yet
 
-// Context types. 
-//		Blank:	
+// Context types.
+//		Blank:
 typedef enum AEContextType
 {
-	// Default: Tablet output areas are reset to full size, current transducers 
-	//				are acquired, the context is marked non-customizable (control 
-	//				panel mapping changes don't affect it), and the context is 
-	//				enabled. 
+	// Default: Tablet output areas are reset to full size, current transducers
+	//				are acquired, the context is marked non-customizable (control
+	//				panel mapping changes don't affect it), and the context is
+	//				enabled.
 	//
-	//				This is the appropriate type for applications which want to 
-	//				take over tablet mapping. 
+	//				This is the appropriate type for applications which want to
+	//				take over tablet mapping.
 	pContextTypeDefault				= 'Pos ',
-	
-	// Blank:	The context is enabled, but the rest of the work done in creating 
+
+	// Blank:	The context is enabled, but the rest of the work done in creating
 	//				a default context is skipped.
 	//
-	//				This is appropriate for contexts which only customize buttons, 
-	//				and should still track other user changes in the control panel. 
+	//				This is appropriate for contexts which only customize buttons,
+	//				and should still track other user changes in the control panel.
 	pContextTypeBlank					= 'Blnk'
 
 } AEContextType;
@@ -356,4 +356,3 @@ typedef enum eAEControlPosition
 #define kControlNumberKey						"Control Number"	// 1-based
 #define kFunctionNumberKey						"Function Number"	// 1-based
 #define kControlValueKey						"Control Value"	// value depends on the control type
-

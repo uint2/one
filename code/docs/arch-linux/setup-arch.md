@@ -12,16 +12,16 @@ start with a conservative
 ```
 fdisk -l
 ```
-establish your victim (most probably `/dev/sda`)  
+establish your victim (most probably `/dev/sda`)
 mis-en-place:
 ```
 fdisk /dev/sda
 ```
-create a gpt partition table `g`  
+create a gpt partition table `g`
 add a partition `n`
 1. default number, default sector, last sector = `+550M` (min required for EFI partition)
 2. default number, default sector, last sector = `+2G`
-3. default number, default sector, default last sector  
+3. default number, default sector, default last sector
 
 change the partition types `t`
 1. change to `1` (EFI System)
@@ -41,8 +41,8 @@ mount the filesystem
 mount /dev/sda3 /mnt
 ```
 ## install linux
-**this requires an internet connection**  
-(what I did was to just buy a ethernet adapter for mac)  
+**this requires an internet connection**
+(what I did was to just buy a ethernet adapter for mac)
 install the bare minimum
 ```
 pacstrap /mnt base linux linux-firmware
@@ -75,11 +75,11 @@ I'll do `neovim`
 ```
 pacman -Syu neovim
 ```
-open and edit `locale.gen`  
+open and edit `locale.gen`
 ```
 nvim /etc/locale.gen
 ```
-uncomment the line with your locale  
+uncomment the line with your locale
 for my case I changed the line
 ```
 #en_US.UTF-8 UTF-8
@@ -105,7 +105,7 @@ open and edit `hostname`
 ```
 nvim /etc/hostname
 ```
-give your computer a name, say for example `nyr`  
+give your computer a name, say for example `nyr`
 open and edit `hosts`
 ```
 nvim /etc/hosts
@@ -142,7 +142,7 @@ edit `visudo`
 ```
 EDITOR=nvim visudo
 ```
-uncomment the wheel group  
+uncomment the wheel group
 I changed the line
 ```
 # %wheel ALL=(ALL) ALL
@@ -233,7 +233,7 @@ git clone git@github.com:NguyenVuKhang/arch.git arch
 ```
 install my apps
 ```
-sudo pacman -Syu fzf the_silver_searcher ripgrep unzip gzip xorg firefox lsd maim qmk vlc noto-fonts-cjk 
+sudo pacman -Syu fzf the_silver_searcher ripgrep unzip gzip xorg firefox lsd maim qmk vlc noto-fonts-cjk
 yay -S spotify
 ```
 set up hourly alert:

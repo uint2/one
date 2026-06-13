@@ -1,1 +1,1 @@
- Manage GitLab via the Rest API. 
+ Manage GitLab via the Rest API.

@@ -20,10 +20,10 @@
 
 ### Error handling
 
-1. if **Preprocessing** fails:  
+1. if **Preprocessing** fails:
    Pass the raw CLI arguments into a `git` command and run that and
    use the same exit code.
-2. if **Running** fails:  
+2. if **Running** fails:
    Non-issue. Failing here means there was probably something wrong
    with the user-supplied command.
 

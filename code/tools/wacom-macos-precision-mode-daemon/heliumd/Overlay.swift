@@ -26,7 +26,7 @@ class Overlay: NSWindow {
         show()
         hide()
     }
-    
+
     func setFrameWithMargin(to rect: inout NSRect) {
         rect.origin.x -= margin
         rect.origin.y -= margin
@@ -41,7 +41,7 @@ class Overlay: NSWindow {
         rect.size.height += margin * 2
         setFrame(rect, display: true)
     }
-    
+
     private func draw(commands: () -> ()) {
         let bg = NSImage(size: frame.size)
         bg.lockFocus()
@@ -61,12 +61,12 @@ class Overlay: NSWindow {
             line.stroke()
         }
     }
-    
+
     /// Draws a circle in the middle of the screen.
     func drawFullscreenModeArt(lineColor: NSColor, lineWidth: Double, cornerLength _: Double) {
         draw {
             lineColor.set()
-            
+
             var circRect = frame
             circRect.setAspectRatio(1)
             circRect.scale(by: 0.1)

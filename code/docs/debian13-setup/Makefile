@@ -7,5 +7,5 @@ run:
 	# cargo run -- nvidia install
 	cargo run -- qmk
 
-apt: 
+apt:
 	cargo run -- apt

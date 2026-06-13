@@ -22,7 +22,7 @@ $ git nu status
 # nothing added to commit but untracked files present
 ```
 
-Note the similarity of the output `git nu status` to that of `git status`.  
+Note the similarity of the output `git nu status` to that of `git status`.
 They are identical except for the numbers in front of filenames.
 
 After `gitnu status`, you can now use numbers in place of filenames for git

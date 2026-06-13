@@ -17,7 +17,7 @@
 
 //
 //	Purpose:
-//		Create an autoreleased NSAppleEventDescriptor instance for an Apple Event 
+//		Create an autoreleased NSAppleEventDescriptor instance for an Apple Event
 //		object from type objType, key keyDesc, and form key.
 //
 //	Parameters:
@@ -57,7 +57,7 @@
 
 //
 //	Purpose:
-//		Create an autoreleased NSAppleEventDescriptor instance for an Apple Event 
+//		Create an autoreleased NSAppleEventDescriptor instance for an Apple Event
 //		object from type objType, key keyDesc, and form key.
 //
 //	Parameters:
@@ -77,7 +77,7 @@
 {
 	NSAppleEventDescriptor * __autoreleasing result     = nil;
 	AEDesc                  resultDesc;
-	
+
 	OSErr err = CreateObjSpecifier(objType_I,
 											(AEDesc*)[fromDesc_I aeDesc],
 											keyForm_I,
@@ -97,7 +97,7 @@
 
 //
 //	Purpose:
-//		Create and return an autoreleased NSAppleEventDescriptor that contains 
+//		Create and return an autoreleased NSAppleEventDescriptor that contains
 //		an UIInt32 value.
 //
 //	Parameters:
@@ -160,10 +160,10 @@
 {
 	NSAppleEventDescriptor * __autoreleasing result = nil;
 	AppleEvent resultDesc;
-	
+
 	// send the apple event
 	OSStatus err = AESendMessage([self aeDesc], &resultDesc, kAEWaitReply, timeout_I);
-	
+
 	// get the reply
 	if (err == noErr)
 	{

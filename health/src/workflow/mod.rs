@@ -1,3 +1,10 @@
+//! This script serves to check that all those workflows that use path filters
+//! filter for sub-projects as well as itself.
+//!
+//! In the future if the complexity grows and we use path filters for other
+//! things, this script needs to be updated. (This script currently will also
+//! assert that we _only_ use path filters for the known purpose.)
+
 mod types;
 
 use types::GithubWorkflow;
@@ -55,17 +62,18 @@ pub fn main() {
         wf.assert_uses_version("softprops/action-gh-release", "v3");
 
         // Pretty-print the workflow
-        println!("=={:=<78}", workflow_yml_path.display());
+        let mut path_display =
+            format!("*> \x1b[36m{}\x1b[m ", workflow_yml_path.display());
         if let Some(name) = wf.name {
-            println!("name: {name}");
+            path_display.push_str(&format!("({name}) "));
         }
+        println!("{}", path_display);
         for j in wf.jobs() {
             match j.name {
                 Some(name) => println!("  - {} ({name})", j.yml_key),
                 None => println!("  - {}", j.yml_key),
             }
         }
-        println!()
     }
 
     println!("All {n} workflow(s) validated.", n = workflow_yml_paths.len());

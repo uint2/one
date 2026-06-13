@@ -46,7 +46,7 @@ class Helium: Store {
     func hideOverlay() {
         overlay.hide()
     }
-    
+
     func display() {
         switch mode {
         case .precision: if penInProximity {

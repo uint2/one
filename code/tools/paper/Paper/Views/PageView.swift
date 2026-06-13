@@ -33,7 +33,7 @@ class PageView: UIView {
             touchEnded(at: touch, with: event)
         }
     }
-    
+
     // MARK: - draw/render override
 
     override func draw(_ rect: CGRect) {
@@ -42,11 +42,11 @@ class PageView: UIView {
         guard let context = UIGraphicsGetCurrentContext() else {
             return
         }
-        
+
         buffer.loadProps(onto: context)
         buffer.stroke(onto: context)
     }
-    
+
     // MARK: - Custom business logic
 
     func touchBegan(at touch: UITouch, with event: UIEvent?) {
@@ -63,7 +63,7 @@ class PageView: UIView {
 
         let render = buffer.move(to: touch.location(in: self))
         setNeedsDisplay(render)
-        
+
     }
 
     func touchEnded(at touch: UITouch, with event: UIEvent?) {

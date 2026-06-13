@@ -4,7 +4,7 @@ SCANLIST="$HOME/.config/ags/scanlist"
 
 
 function send_help_text() {
-cat <<EOF  
+cat <<EOF
 ags scans the list of paths provided in ~/.config/ags/scanlist
 for git statuses and unpushed commits to the remote branch that's
 currently tracked.

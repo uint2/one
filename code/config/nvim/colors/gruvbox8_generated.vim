@@ -78,7 +78,7 @@ hi! link @markup.math.latex Normal
 hi! link @label.latex Normal
 hi! link @operator.latex GBOrange
 hi! link @markup.link.url.latex GBGray
- 
+
 " treesitter[lua]
 hi! link @variable Normal
 hi! link @keyword.function.lua GBGreen

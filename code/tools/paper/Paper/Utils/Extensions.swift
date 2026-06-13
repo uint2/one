@@ -17,7 +17,7 @@ extension CGPoint {
     func midpoint(to point: CGPoint) -> CGPoint {
         CGPoint(x: (x + point.x) / 2, y: (y + point.y) / 2)
     }
-    
+
     func rectBetween(_ p: CGPoint, lineWidth: CGFloat) -> CGRect {
         let H = lineWidth / 2
         let (x, w) = x < p.x ? (x - H, p.x - x + lineWidth) : (p.x - H, x - p.x + lineWidth)

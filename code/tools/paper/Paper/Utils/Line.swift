@@ -15,7 +15,7 @@ class Line {
     var cgPath: CGPath {
         bezierPath.cgPath
     }
-    
+
     var lineWidth: CGFloat {
         bezierPath.lineWidth
     }

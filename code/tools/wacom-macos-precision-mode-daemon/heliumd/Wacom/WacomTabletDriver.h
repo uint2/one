@@ -30,10 +30,10 @@
 + (NSAppleEventDescriptor*) dataForAttribute:(DescType)attribute_I
 												  ofType:(DescType)dataType_I
 										  routingTable:(NSAppleEventDescriptor *)routingDesc_I;
-										  
+
 + (UInt32) controlCountOfContext:(UInt32)context_I
 						forControlType:(eAETabletControlType)controlType_I;
-						
+
 + (UInt32) functionCountOfControl:(UInt32)control_I
 								ofContext:(UInt32)context_I
 						 forControlType:(eAETabletControlType)controlType_I;
@@ -47,7 +47,7 @@
 			  ofType:(DescType)dataType_I
 	  forAttribute:(DescType)attribute_I
 	  routingTable:(NSAppleEventDescriptor *)routingDesc_I;
-	  
+
 // Apple Event routing tables
 
 // - Raw

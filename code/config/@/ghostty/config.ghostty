@@ -85,7 +85,7 @@ selection-background = #ebdbb2
 selection-foreground = #928374
 # active_border_color      #8A9948
 # inactive_border_color    #8A9948
-# 
+#
 # active_tab_foreground    #a9b665
 # active_tab_background    #3c3836
 # inactive_tab_foreground  #a89984

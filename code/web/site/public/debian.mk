@@ -61,7 +61,7 @@ s2:
 	#
 	apt install $(APT_LIST)
 
-s3: 
+s3:
 	# Step 3: Install NVIDIA drivers.
 	# * This step requires `linux-headers` and `libglvnd-dev` to be installed.
 	#
@@ -85,7 +85,7 @@ s3-uninstall: $(NVIDIA_DL_FILE)
 
 s3-help: $(NVIDIA_DL_FILE)
 	sh $(NVIDIA_DL_FILE) --advanced-options > nvidia-help.txt
-	
+
 $(NVIDIA_DL_FILE):
 	curl --fail --location --output $(NVIDIA_DL_FILE) $(NVIDIA_DL_URL)
 
